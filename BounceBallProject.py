@@ -12,6 +12,9 @@ ball_position = [SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2]  # Initial position
 ball_speed = 10  # Speed of horizontal movement
 jump_height = 50  # Height of jump
 is_jumping = False  # Jump state
+jump_velocity = 10  # Speed of jump
+fall_velocity = 5  # Speed of fall
+jump_peak = False  # Check if jump is at peak
 
 # Midpoint Circle Algorithm
 
@@ -46,8 +49,9 @@ def plot_circle_points(x_center, y_center, x, y):
     glVertex2i(x_center - y, y_center - x)
     glEnd()
 
+# Keyboard Handler
 def keyboard_handler(key, x, y):
-    global ball_position, is_jumping
+    global ball_position, is_jumping, jump_peak
 
     if key == b'a':  # Move left
         ball_position[0] -= ball_speed
@@ -55,15 +59,39 @@ def keyboard_handler(key, x, y):
         ball_position[0] += ball_speed
     elif key == b'w' and not is_jumping:  # Jump
         is_jumping = True
-        ball_position[1] += jump_height
+        jump_peak = False
 
     glutPostRedisplay()  # Update the display
+
+# Update Ball Position for Jumping and Falling
+
+def update_jump():
+    global ball_position, is_jumping, jump_peak
+
+    if is_jumping:
+        if not jump_peak:
+            ball_position[1] += jump_velocity  # Move up
+            if ball_position[1] >= SCREEN_HEIGHT // 2 + jump_height:  # Check jump peak
+                jump_peak = True
+        else:
+            ball_position[1] -= fall_velocity  # Move down
+            if ball_position[1] <= SCREEN_HEIGHT // 2:  # Reset position
+                ball_position[1] = SCREEN_HEIGHT // 2
+                is_jumping = False
+
 
 # Display Function
 def display():
     glClear(GL_COLOR_BUFFER_BIT)
     draw_circle_midpoint(ball_position[0], ball_position[1], ball_radius)
     glFlush()
+
+# Timer Function for Smooth Updates
+def timer(value):
+    update_jump()
+    glutPostRedisplay()
+    glutTimerFunc(16, timer, 0)  # Approximately 60 FPS
+
 
 # Main Function
 def main():
@@ -78,6 +106,7 @@ def main():
 
     glutDisplayFunc(display)
     glutKeyboardFunc(keyboard_handler)  # Register keyboard handler
+    glutTimerFunc(16, timer, 0)  # Register timer function
     glutMainLoop()
 
 main()
