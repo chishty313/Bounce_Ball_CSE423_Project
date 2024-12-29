@@ -9,6 +9,9 @@ SCREEN_HEIGHT = 600
 # Ball properties
 ball_radius = 20
 ball_position = [SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2]  # Initial position
+ball_speed = 10  # Speed of horizontal movement
+jump_height = 50  # Height of jump
+is_jumping = False  # Jump state
 
 # Midpoint Circle Algorithm
 
@@ -43,6 +46,19 @@ def plot_circle_points(x_center, y_center, x, y):
     glVertex2i(x_center - y, y_center - x)
     glEnd()
 
+def keyboard_handler(key, x, y):
+    global ball_position, is_jumping
+
+    if key == b'a':  # Move left
+        ball_position[0] -= ball_speed
+    elif key == b'd':  # Move right
+        ball_position[0] += ball_speed
+    elif key == b'w' and not is_jumping:  # Jump
+        is_jumping = True
+        ball_position[1] += jump_height
+
+    glutPostRedisplay()  # Update the display
+
 # Display Function
 def display():
     glClear(GL_COLOR_BUFFER_BIT)
@@ -61,6 +77,7 @@ def main():
     gluOrtho2D(0, SCREEN_WIDTH, 0, SCREEN_HEIGHT)
 
     glutDisplayFunc(display)
+    glutKeyboardFunc(keyboard_handler)  # Register keyboard handler
     glutMainLoop()
 
 main()
